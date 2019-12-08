@@ -1,8 +1,10 @@
 package com.example.hello;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,6 +18,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -25,39 +29,65 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
-
-    ListView listView;
+    public ListView listView;
     Customadapter customadapter;
     ArrayList<News> mangdocbao;
+    FloatingActionButton fab;
+    DatabaseHandler data;
+    String[] listItems; //for dialog choice menu/item tuychon
+    boolean[] checkedItems;
+    ArrayList<Integer> mUserItems = new ArrayList<>();
+    int currentNew = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //dialog menu choice item TUY CHON
+        listItems = getResources().getStringArray(R.array.type_item);
+        checkedItems = new boolean[listItems.length];
+
+        //database
+        data = new DatabaseHandler(this);
+
+        addData(data);
+
         listView = (ListView)findViewById(R.id.listview);
+        fab = (FloatingActionButton)findViewById(R.id.fab);
+
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listView.setSelectionAfterHeaderView();
+            }
+        });
 
         mangdocbao = new ArrayList<News>();
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                new Readdata().execute("https://vnexpress.net/rss/suc-khoe.rss");
+              //main layout when start app
             }
         });
-
+        //listview click item
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(MainActivity.this, Main2Activity.class);
                 intent.putExtra("link", mangdocbao.get(position).link);
+                intent.putExtra("title", mangdocbao.get(position).title);
                 startActivity(intent);
             }
         });
     }
 
-    class Readdata extends AsyncTask<String , String, String>{
 
+    class Readdata extends AsyncTask<String , String, String>{
         @Override
         protected String doInBackground(String... strings) {
             return docNoiDung_Tu_URL(strings[0]);
@@ -68,61 +98,73 @@ public class MainActivity extends AppCompatActivity {
             XMLDOMParser parser = new XMLDOMParser();
             Document document = parser.getDocument(s);
             NodeList nodeList = document.getElementsByTagName("item");
-            NodeList nodeList1 = document.getElementsByTagName("description");
             String title = "";
             String link = "";
             String date = "";
             String image = "";
-            String CutPoint = "src=";
-            String FinalPoint = "></";
-            int FinalPointLength = FinalPoint.length();
-            int CutPointLenth = CutPoint.length();
-
+            String source = "";
             for(int i=0; i<nodeList.getLength(); i++){
                 Element element = (Element) nodeList.item(i);
-                title =parser.getValue(element, "title");
-                link = parser.getValue(element, "link");
-                date = parser.getValue(element, "pubDate");
-                //image
-                String cdata = nodeList1.item(i+1).getTextContent();
-                for(int j=0; j<cdata.length(); j++){
-                    String temp = cdata.substring(j, j+CutPointLenth);
-                    if(temp.compareTo(CutPoint)==0)
-                    {
-                        for(int m = j+6; m<cdata.length(); m++){
-                            String temp1 = cdata.substring(m, m+FinalPointLength);
-                            if(temp1.compareTo(FinalPoint)==0){
-                                image = cdata.substring(j+5, m-2);
-                                break;
-                            }
-                        }
-                        break;
-                    }
+                NodeList temp1 = element.getElementsByTagName("title");
+                NodeList temp2 = element.getElementsByTagName("link");
+                NodeList temp3 = element.getElementsByTagName("pubDate");
+                NodeList temp4 = element.getElementsByTagName("description");
+                title = temp1.item(0).getTextContent().trim();
+                link = temp2.item(0).getTextContent().trim();
+                date = temp3.item(0).getTextContent().trim();
+                String string = temp4.item(0).getTextContent();
+
+                NodeList nodeList1;
+                if(document.getElementsByTagName("copyright").getLength()==0){
+                    nodeList1  =document.getElementsByTagName("generator");
+                }else{
+                    nodeList1  =document.getElementsByTagName("copyright");
                 }
-                //final
-                Log.d("result", title+"\n"+date+"\n"+image);
-                mangdocbao.add(new News(title, link, image,date));
+                source = nodeList1.item(0).getTextContent().trim();
+
+                String CutPoint = "src";
+                String f1 = "></";
+                String f2 = "/><";
+                String f3 ="ali";
+                String f4 = "alt";
+                int FinalPointLength = f1.length();
+                int CutPointLenth = CutPoint.length();
+                try {
+                    for(int j=0; j<string.length(); j++){
+                        String temp = string.substring(j, j+CutPointLenth);
+                        if(temp.compareTo(CutPoint)==0)
+                        {
+                            for(int m = j+6; m<string.length(); m++){
+                                String tempp = string.substring(m, m+FinalPointLength);
+                                if((tempp.compareTo(f1)==0 || tempp.compareTo(f2)==0) || (tempp.compareTo(f3)==0 || tempp.compareTo(f4)==0)){
+                                    image =  string.substring(j+5, m-2);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }catch (Exception e){
+                    break;
+                }
+                Log.d("full info "+i+":", title+"\n"+date+"\n"+link+"\n"+image);
+                Log.d("k=a", s);
+                mangdocbao.add(new News(title.trim(), link.trim(), image.trim(),date.trim(), source.trim()));
             }
-            customadapter = new Customadapter(MainActivity.this, android.R.layout.simple_spinner_item, mangdocbao);
+            Collections.shuffle(mangdocbao);
+            customadapter = new Customadapter(MainActivity.this, android.R.layout.simple_list_item_1, mangdocbao);
             listView.setAdapter(customadapter);
             super.onPostExecute(s);
         }
     }
-    private String docNoiDung_Tu_URL(String theUrl){
+
+    public String docNoiDung_Tu_URL(String theUrl){
         StringBuilder content = new StringBuilder();
-        try    {
-            // create a url object
+        try{
             URL url = new URL(theUrl);
-
-            // create a urlconnection object
             URLConnection urlConnection = url.openConnection();
-
-            // wrap the urlconnection in a bufferedreader
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-
             String line;
-
-            // read from the urlconnection via the bufferedreader
             while ((line = bufferedReader.readLine()) != null){
                 content.append(line + "\n");
             }
@@ -141,25 +183,151 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public void addData(DatabaseHandler data){
+        data.adddataNews(new dataNews(1,"Tuổi trẻ", "Thời sự", "https://tuoitre.vn/rss/thoi-su.rss"));
+        data.adddataNews(new dataNews(2,"Tuổi trẻ", "Thế giới", "https://tuoitre.vn/rss/the-gioi.rss"));
+        data.adddataNews(new dataNews(3,"Tuổi trẻ", "Pháp luật", "https://tuoitre.vn/rss/phap-luat.rss"));
+        data.adddataNews(new dataNews(4,"Tuổi trẻ", "Kinh doanh", "https://tuoitre.vn/rss/kinh-doanh.rss"));
+        data.adddataNews(new dataNews(5,"Tuổi trẻ", "Thể thao", "https://tuoitre.vn/rss/the-thao.rss"));
+        data.adddataNews(new dataNews(6,"Tuổi trẻ", "Công nghệ", "https://tuoitre.vn/rss/nhip-song-so.rss"));
+        data.adddataNews(new dataNews(7,"Tuổi trẻ", "Giáo dục", "https://tuoitre.vn/rss/giao-duc.rss"));
+        data.adddataNews(new dataNews(8,"Tuổi trẻ", "Sức khoẻ-đời sống", "https://tuoitre.vn/rss/suc-khoe.rss"));
+
+        data.adddataNews(new dataNews(9,"Thanh niên", "Thời sự", "https://thanhnien.vn/rss/viet-nam.rss"));
+        data.adddataNews(new dataNews(10,"Thanh niên", "Thế giới", "https://thanhnien.vn/rss/the-gioi.rss"));
+        data.adddataNews(new dataNews(11,"Thanh niên", "Pháp luật", "https://thanhnien.vn/rss/viet-nam/phap-luat.rss"));
+        data.adddataNews(new dataNews(12,"Thanh niên", "Kinh doanh", "https://thanhnien.vn/rss/kinh-doanh.rss"));
+        data.adddataNews(new dataNews(13,"Thanh niên", "Thể thao", "https://thethao.thanhnien.vn/rss/home.rss"));
+        data.adddataNews(new dataNews(14,"Thanh niên", "Công nghệ", "https://thanhnien.vn/rss/cong-nghe-thong-tin.rss"));
+        data.adddataNews(new dataNews(15,"Thanh niên", "Giáo dục", "https://thanhnien.vn/rss/giao-duc.rss"));
+        data.adddataNews(new dataNews(16,"Thanh niên", "Sức khoẻ-đời sống", "https://thanhnien.vn/rss/doi-song.rss"));
+
+        data.adddataNews(new dataNews(17,"Người lao động", "Thời sự", "https://nld.com.vn/thoi-su.rss"));
+        data.adddataNews(new dataNews(18,"Người lao động", "Thế giới", "https://nld.com.vn/thoi-su-quoc-te.rss"));
+        data.adddataNews(new dataNews(19,"Người lao động", "Pháp luật", "https://nld.com.vn/phap-luat.rss"));
+        data.adddataNews(new dataNews(20,"Người lao động", "Kinh doanh", "https://nld.com.vn/kinh-te.rss"));
+        data.adddataNews(new dataNews(21,"Người lao động", "Thể thao", "https://nld.com.vn/the-thao.rss"));
+        data.adddataNews(new dataNews(22,"Người lao động", "Công nghệ", "https://nld.com.vn/cong-nghe.rss"));
+        data.adddataNews(new dataNews(23,"Người lao động", "Giáo dục", "https://nld.com.vn/giao-duc-khoa-hoc.rss"));
+        data.adddataNews(new dataNews(24,"Người lao động", "Sức khoẻ-đời sống", "https://nld.com.vn/suc-khoe.rss"));
+
+        data.adddataNews(new dataNews(25,"24H", "Thời sự", "https://cdn.24h.com.vn/upload/rss/tintuctrongngay.rss"));
+        data.adddataNews(new dataNews(26,"24H", "Thế giới", "https://cdn.24h.com.vn/upload/rss/tintuctrongngay.rss"));
+        data.adddataNews(new dataNews(27,"24H", "Pháp luật", "https://cdn.24h.com.vn/upload/rss/anninhhinhsu.rss"));
+        data.adddataNews(new dataNews(28,"24H", "Kinh doanh", "https://cdn.24h.com.vn/upload/rss/taichinhbatdongsan.rss"));
+        data.adddataNews(new dataNews(29,"24H", "Thể thao", "https://cdn.24h.com.vn/upload/rss/thethao.rss"));
+        data.adddataNews(new dataNews(30,"24H", "Công nghệ", "https://cdn.24h.com.vn/upload/rss/congnghethongtin.rss"));
+        data.adddataNews(new dataNews(31,"24H", "Giáo dục", "https://cdn.24h.com.vn/upload/rss/giaoducduhoc.rss"));
+        data.adddataNews(new dataNews(32,"24H", "Sức khoẻ-đời sống", "https://cdn.24h.com.vn/upload/rss/suckhoedoisong.rss"));
+    }
+
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
         switch (item.getItemId()){
             case R.id.item1:
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        new Readdata().execute("https://vnexpress.net/rss/thoi-su.rss");
+
+                       getAllData(mangdocbao, data, 9,16, checkedItems);
                     }
                 });
                 return true;
             case R.id.item2:
-                Toast.makeText(this, "item2", Toast.LENGTH_SHORT).show();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getAllData(mangdocbao, data, 1,8, checkedItems);
+                    }
+                });
                 return true;
             case R.id.item3:
-                Toast.makeText(this, "item3", Toast.LENGTH_SHORT).show();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getAllData(mangdocbao, data, 17,24,checkedItems);
+                    }
+                });
+                return true;
+            case R.id.item4:
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getAllData(mangdocbao, data, 25,32,checkedItems);
+                    }
+                });
+                return true;
+            case R.id.item5:
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
+                        mBuilder.setTitle("Tuỳ chọn");
+                        mBuilder.setMultiChoiceItems(listItems, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int position, boolean isChecked) {
+                                if(isChecked){
+                                    if(! mUserItems.contains(position)){
+                                        mUserItems.add(position);
+                                    }
+                                }else if(mUserItems.contains(position)){
+                                    mUserItems.remove(mUserItems.indexOf(position));
+                                }
+                            }
+                        });
+                        mBuilder.setCancelable(false);
+                        mBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String item = "";
+                                for(int i=0; i<checkedItems.length; i++){
+                                    item = item+checkedItems[i];
+                                }
+                                getAllData(mangdocbao, data, currentNew,currentNew+7,checkedItems);
+                            }
+                        });
+                        mBuilder.setNegativeButton("Dismiss", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                        mBuilder.setNeutralButton("Clear all", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String item = "";
+                                for (int i=0; i<checkedItems.length; i++){
+                                    checkedItems[i] = false;
+                                    mUserItems.clear();
+                                }
+                                getAllData(mangdocbao, data, currentNew,currentNew+7,checkedItems);
+                            }
+                        });
+
+                        AlertDialog mdiDialog = mBuilder.create();
+                        mdiDialog.show();
+                    }
+                });
                 return true;
 
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    void getAllData(ArrayList<News> arr, DatabaseHandler data, int x, int y, boolean[] checkItem){
+        currentNew = x;
+        arr.clear();
+        int dem = 0;
+        for (int i=x; i<y; i++){
+            if(checkItem[i-x]==true){
+                new Readdata().execute(data.getdataNews(i).linkrss);
+                dem++;
+            }
+        }
+        if(dem==0){
+            for (int i=x; i<y; i++){
+                new Readdata().execute(data.getdataNews(i).linkrss);
+            }
+        }
     }
 }

@@ -4,18 +4,26 @@
 
     <item
         android:id="@+id/item1"
-        android:title="Vn Express"
-        app:showAsAction="never"
-        />
+        android:title="Thanh niên"
+        app:showAsAction="never" />
     <item
         android:id="@+id/item2"
-        android:title="Zing news"
+        android:title="Tuổi trẻ"
         app:showAsAction="never"
         />
     <item
         android:id="@+id/item3"
-        android:title="Tuổi trẻ"
+        android:title="Người lao động"
         app:showAsAction="never"
         />
-
+    <item
+        android:id="@+id/item4"
+        android:title="24h"
+        app:showAsAction="never"
+        />
+    <item
+        android:id="@+id/item5"
+        android:title="Tuỳ chọn"
+        app:showAsAction="never"
+        />
 </menu>

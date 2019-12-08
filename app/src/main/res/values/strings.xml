@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Hello</string>
+    <string name="thanh_ni_n">Thanh niên</string>
+    <string-array name="type_item">
+        <item>Thời sự</item>
+        <item>Thế giới</item>
+        <item>Pháp luật</item>
+        <item>Kinh doanh</item>
+        <item>Thể thao</item>
+        <item>Công nghệ</item>
+        <item>Giáo dục</item>
+        <item>Sức khoẻ</item>
+    </string-array>
 </resources>

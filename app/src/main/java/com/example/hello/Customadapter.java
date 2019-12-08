@@ -34,7 +34,8 @@ public class Customadapter extends ArrayAdapter<News> {
             txtTitle.setText(p.title);
             TextView txtDate = (TextView)view.findViewById(R.id.txtDate);
             txtDate.setText(p.date);
-
+            TextView txtSource = (TextView)view.findViewById(R.id.txtSource);
+            txtSource.setText(p.source);
             ImageView imageView = (ImageView) view.findViewById(R.id.imageView);
             Picasso.with(getContext()).load(p.image).into(imageView);
 
