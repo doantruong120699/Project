@@ -2,7 +2,6 @@ package com.example.hello;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
@@ -13,22 +12,15 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-
 import android.content.ClipboardManager;
-
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class Main2Activity extends AppCompatActivity {
     ArrayList<String> saveLink;
     WebView webView;
-    String linkget,titleget;
+    String linkget,titleget,imgget;
     FloatingActionButton fabBtn;
     DatabaseHandler dataFavourite;
     @Override
@@ -38,21 +30,20 @@ public class Main2Activity extends AppCompatActivity {
 
         dataFavourite = new DatabaseHandler(this);
         saveLink = new ArrayList<String>();
+
         fabBtn = (FloatingActionButton)findViewById(R.id.fabBtn);
         fabBtn.hide();
+
         webView = (WebView)findViewById(R.id.webView);
         webView.getSettings().setUseWideViewPort(true);
         webView.getSettings().setLoadWithOverviewMode(true);
-
         webView.getSettings().setSupportZoom(true);
         webView.getSettings().setBuiltInZoomControls(true);
-        //webView.getSettings().setDisplayZoomControls(false);
-        //webView.getSettings ().setDisplayZoomControls (true);
 
         Intent intent = getIntent();
         linkget = intent.getStringExtra("link");
         titleget = intent.getStringExtra("title");
-        Toast.makeText(this, titleget, Toast.LENGTH_SHORT).show();
+        imgget = intent.getStringExtra("img");
 
         List<dataNews> temp = new ArrayList<dataNews>();
         temp = dataFavourite.getAlldataNewss();
@@ -61,10 +52,8 @@ public class Main2Activity extends AppCompatActivity {
                 fabBtn.show();
             }
         }
-
         webView.loadUrl(linkget);
         webView.setWebViewClient(new WebViewClient());
-
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -72,7 +61,6 @@ public class Main2Activity extends AppCompatActivity {
         inflater.inflate(R.menu.back_menu, menu);
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
@@ -101,7 +89,7 @@ public class Main2Activity extends AppCompatActivity {
                 if(check == true){
                     fabBtn.hide();
                 }else{
-                    dataFavourite.adddataNews(new dataNews(1,titleget,"1", linkget));
+                    dataFavourite.adddataNews(new dataNews(1,titleget,imgget, linkget));
                     fabBtn.show();
                 }
             }

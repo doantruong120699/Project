@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/itemreload"
+        android:title=""
+        android:icon="@drawable/ic_autorenew"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/itemback"
+        android:title=""
+        android:icon="@drawable/ic_arrow_back_black_24dp"
+        app:showAsAction="always"
+        />
+</menu>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:weightSum="10"
+    android:background="@drawable/duongvien_goctron"
+    >
+    <TextView
+        android:textAlignment="center"
+        android:width="80dp"
+        android:textSize="11sp"
+        android:layout_marginTop="5dp"
+        android:lines="4"
+        android:layout_weight="2"
+        android:id="@+id/txtngay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+    <TextView
+        android:layout_marginTop="5dp"
+        android:lines="4"
+        android:layout_weight="8"
+        android:id="@+id/txtnoidung"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+</LinearLayout>

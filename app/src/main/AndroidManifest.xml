@@ -11,10 +11,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Main2Activity"
-            android:label="Đọc báo"></activity>
-        <activity android:name=".MainActivity"
-
+        <activity
+            android:name=".Main3Activity"
+            android:label="Yêu thích" />
+        <activity
+            android:name=".Main2Activity"
+            android:label="Đọc báo" />
+        <activity
+            android:name=".MainActivity"
             android:label="Đọc báo">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,4 +27,5 @@
             </intent-filter>
         </activity>
     </application>
+
 </manifest>
